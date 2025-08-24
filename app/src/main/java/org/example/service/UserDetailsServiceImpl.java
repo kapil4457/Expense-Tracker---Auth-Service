@@ -47,15 +47,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return userRepository.findByUsername(userInfoDto.getUsername());
     }
 
-    public Boolean signUpUser(UserInfoDto userInfoDto){
+    public String signUpUser(UserInfoDto userInfoDto){
         userInfoDto.setPassword(passwordEncoder.encode(userInfoDto.getPassword()));
         if(Objects.nonNull(checkIfUserAlreadyExists(userInfoDto))){
-            return false;
+            return null;
         }
         String userId = UUID.randomUUID().toString();
         userRepository.save(new UserInfo(userId,userInfoDto.getUsername(),userInfoDto.getPassword(),new HashSet<>()));
         userInfoProducer.sendEventToKafka(userInfoEventToPublish(userInfoDto,userId));
-        return true;
+        return userId;
     }
     public String getUserByUsername(String userName){
         return Optional.of(userRepository.findByUsername(userName)).map(UserInfo::getUserId).orElse(null);

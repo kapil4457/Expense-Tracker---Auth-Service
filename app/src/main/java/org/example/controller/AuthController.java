@@ -36,13 +36,13 @@ public class AuthController {
     @PostMapping("auth/v1/signup")
     public ResponseEntity SignUp(@RequestBody UserInfoDto userInfoDto){
         try{
-            Boolean isSignedUp = userDetailsService.signUpUser(userInfoDto);
-            if(Boolean.FALSE.equals(isSignedUp)){
+            String userId = userDetailsService.signUpUser(userInfoDto);
+            if(Objects.isNull(userId)){
                 return new ResponseEntity<>("Already Exists",HttpStatus.BAD_REQUEST);
             }
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfoDto.getUsername());
             String jwtToken = jwtService.GenerateToken(userInfoDto.getUsername());
-            return new ResponseEntity<>(JwtResponseDTO.builder().accessToken(jwtToken).token(refreshToken.getToken()).build(),HttpStatus.OK);
+            return new ResponseEntity<>(JwtResponseDTO.builder().accessToken(jwtToken).userId(userId).token(refreshToken.getToken()).build(),HttpStatus.OK);
         }catch(Exception ex){
             ex.printStackTrace();
             return new ResponseEntity<>("Exception in User Service", HttpStatus.INTERNAL_SERVER_ERROR);
