@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -55,6 +56,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         userRepository.save(new UserInfo(userId,userInfoDto.getUsername(),userInfoDto.getPassword(),new HashSet<>()));
         userInfoProducer.sendEventToKafka(userInfoEventToPublish(userInfoDto,userId));
         return true;
+    }
+    public String getUserByUsername(String userName){
+        return Optional.of(userRepository.findByUsername(userName)).map(UserInfo::getUserId).orElse(null);
     }
     private UserInfoEvent userInfoEventToPublish(UserInfoDto userInfoDto, String userId){
         return UserInfoEvent.builder()
