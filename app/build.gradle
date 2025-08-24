@@ -34,7 +34,10 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.7'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.kafka:spring-kafka'
-    testImplementation libs.junit
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:mysql:1.20.1'
+    testImplementation 'org.testcontainers:kafka:1.20.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
 }
 
 java {
@@ -44,6 +47,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {
