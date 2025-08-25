@@ -63,7 +63,7 @@ jobs:
         with:
           repository: kapil4457/Expense-Tracker---Configuration
           token: ${{ secrets.K8S_REPO_TOKEN }}
-          path: argocd-k8s-manifests
+          path: .
 
       - name: Update Kubernetes manifest
         run: |
