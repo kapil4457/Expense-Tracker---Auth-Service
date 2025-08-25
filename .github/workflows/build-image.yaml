@@ -7,9 +7,15 @@ on:
 jobs:
   build-image:
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-image-tag.outputs.image_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+      - name: Set Docker image tag
+        id: set-image-tag
+        run: echo "image_tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -43,7 +49,32 @@ jobs:
           name: auth-service-jar
           path: app/build/libs/*.jar
 
-      - name: Build Docker image
+      - name: Build and push Docker image
         run: |
           docker build -t kapil4457/expense-tracker-auth-service:${{ github.sha }} .
           docker push kapil4457/expense-tracker-auth-service:${{ github.sha }}
+
+  update-k8s-manifests:
+    runs-on: ubuntu-latest
+    needs: build-image
+    steps:
+      - name: Checkout manifests repo
+        uses: actions/checkout@v5
+        with:
+          repository: kapil4457/Expense-Tracker---Configuration
+          token: ${{ secrets.K8S_REPO_TOKEN }}
+          path: k8s-manifests
+
+      - name: Update Kubernetes manifest
+        run: |
+          IMAGE_TAG=${{ needs.build-image.outputs.IMAGE_TAG }}
+          sed -i "s|image: kapil4457/expense-tracker-auth-service:.*|image: kapil4457/expense-tracker-auth-service:${IMAGE_TAG}|g" k8s-manifests/deployments/auth-service.yaml
+
+      - name: Commit and push changes
+        run: |
+          cd k8s-manifests
+          git config user.name "Kapil Soni"
+          git config user.email "kapilsoni54768161@gmail.com"
+          git add .
+          git commit -m "Update auth-service image to $IMAGE_TAG" || echo "No changes to commit"
+          git push
